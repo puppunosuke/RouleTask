@@ -307,13 +307,42 @@
   }
 
   async function getImage(taskId) {
-    const db = await openIDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(IDB_STORE, 'readonly');
-      const req = tx.objectStore(IDB_STORE).get(taskId);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => reject(req.error);
-    });
+    // 拡張機能環境: 既存の IndexedDB から取得
+    const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+    if (isExtension) {
+      const db = await openIDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readonly');
+        const req = tx.objectStore(IDB_STORE).get(taskId);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    // ウェブ版 + ログイン中: Firebase Storage から URL を取得
+    const fb = window.RouleTask && window.RouleTask.firebase;
+    if (!fb) return null;
+    const user = fb.getCurrentUser();
+    if (!user) return null;
+    // task の imageFile を reels から引いて Storage のパスにする
+    const task = findTaskById(taskId);
+    if (!task || !task.imageFile) return null;
+    try {
+      return await fb.getImageURL(user.uid, task.imageFile);
+    } catch (err) {
+      console.error('画像取得エラー:', task.imageFile, err);
+      return null;
+    }
+  }
+
+  // reels 全体から taskId に一致するタスクを返す（ウェブ版で imageFile を引くため）
+  function findTaskById(taskId) {
+    for (const reel of state.reels) {
+      if (!reel.tasks) continue;
+      for (const t of reel.tasks) {
+        if (t.id === taskId) return t;
+      }
+    }
+    return null;
   }
 
   async function deleteImage(taskId) {

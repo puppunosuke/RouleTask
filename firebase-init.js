@@ -24,6 +24,12 @@ import {
   getDoc,
   setDoc,
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAHW2fQmOK0-Hl56SQa7EeDXPL6-9oKTJw",
@@ -37,6 +43,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
 window.RouleTask = window.RouleTask || {};
@@ -46,6 +53,7 @@ window.RouleTask.firebase = {
   signInWithGoogle: () => signInWithPopup(auth, provider),
   signOutUser: () => signOut(auth),
   watchAuthState: (callback) => onAuthStateChanged(auth, callback),
+  getCurrentUser: () => auth.currentUser,
 
   // --- Firestore: 全データを1ドキュメントに保存／取得 ---
   // パス: /users/{uid}/data/main
@@ -57,6 +65,17 @@ window.RouleTask.firebase = {
   saveCloud: async (uid, data) => {
     const ref = doc(db, "users", uid, "data", "main");
     await setDoc(ref, data);
+  },
+
+  // --- Storage: 画像のアップロード／URL取得 ---
+  // パス: /users/{uid}/images/{filename}（例: A-009.jpg）
+  uploadImage: async (uid, filename, file) => {
+    const r = storageRef(storage, `users/${uid}/images/${filename}`);
+    await uploadBytes(r, file);
+  },
+  getImageURL: async (uid, filename) => {
+    const r = storageRef(storage, `users/${uid}/images/${filename}`);
+    return getDownloadURL(r);
   },
 };
 
