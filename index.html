@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RouleTask</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidepanel.css">
+  <link rel="stylesheet" href="web.css">
+</head>
+<body>
+
+  <!-- Noise texture overlay -->
+  <div class="noise-overlay"></div>
+  <!-- CRT subtle scanline -->
+  <div class="scanline-overlay"></div>
+  <!-- Ambient spotlight -->
+  <div class="spotlight"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-title-row">
+        <span class="header-icon">
+          <svg class="ico ico-logo" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><line x1="8" y1="4" x2="8" y2="20"/><line x1="16" y1="4" x2="16" y2="20"/><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>
+        </span>
+        <div class="header-title-block">
+          <h1 class="header-title">RouleTask</h1>
+          <div class="header-subtitle">DAILY TASK SLOT</div>
+        </div>
+      </div>
+      <div class="header-streak" id="headerStreak"></div>
+      <div class="header-tokens" id="tokenCount" title="リロールトークン">🪙 0</div>
+      <button id="accountBtn" class="header-account" title="アカウント（Googleログインで同期）" type="button">
+        <span id="accountStatus">🔑</span>
+      </button>
+    </div>
+    <div class="header-divider">
+      <span class="hd-diamond">◆</span>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- ===== SLOT MACHINE ===== -->
+    <section class="slot-section" id="slotSection">
+      <div id="slotCollapseBar" class="slot-collapse-bar hidden" title="クリックでルーレットを表示/非表示">
+        <span class="slot-collapse-label">TASK ROULETTE</span>
+        <span id="slotCollapseIcon" class="slot-collapse-icon">▲</span>
+      </div>
+      <div class="slot-cabinet" id="slotCabinet">
+        <!-- Corner ornaments -->
+        <div class="cabinet-corner tl"></div>
+        <div class="cabinet-corner tr"></div>
+        <div class="cabinet-corner bl"></div>
+        <div class="cabinet-corner br"></div>
+
+        <div class="cabinet-marquee">
+          <div class="marquee-track">
+            <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+            <span class="bulb"></span><span class="bulb"></span>
+          </div>
+          <span class="marquee-label">TASK ROULETTE</span>
+          <div class="marquee-track">
+            <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+            <span class="bulb"></span><span class="bulb"></span>
+          </div>
+        </div>
+
+        <div class="cabinet-viewport">
+          <div id="reelsContainer" class="reels-container">
+            <div class="reels-placeholder" id="reelsPlaceholder">
+              <p class="placeholder-main">ジャンルを登録して</p>
+              <p class="placeholder-sub">リールを追加しよう</p>
+            </div>
+          </div>
+          <!-- Glass reflection -->
+          <div class="viewport-glare"></div>
+        </div>
+
+        <div class="cabinet-footer">
+          <div class="footer-trim"></div>
+        </div>
+      </div>
+
+      <div class="roll-lever-row">
+        <button id="btnRoll" class="roll-button" disabled>
+          <div class="roll-button-bg"></div>
+          <span class="roll-button-inner">
+            <span class="roll-button-text">R O L L !</span>
+            <span class="roll-button-sub">PULL THE LEVER</span>
+          </span>
+        </button>
+        <div id="leverContainer" class="lever-container">
+          <div class="lever-track"></div>
+          <div id="leverArm" class="lever-arm">
+            <div class="lever-knob"></div>
+          </div>
+        </div>
+      </div>
+      <div id="rollStatus" class="roll-status"></div>
+    </section>
+
+    <!-- ===== TODAY'S RESULT ===== -->
+    <section id="todayResult" class="today-result hidden">
+      <div class="card-frame quest-frame">
+        <div class="result-header">
+          <span class="result-icon"><svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12"/><path d="M4 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2"/></svg></span>
+          <span>TODAY'S QUEST</span>
+          <span id="todayStatusBadge" class="status-badge"></span>
+        </div>
+        <div id="resultCards" class="result-cards"></div>
+        <div id="progressBarContainer" class="progress-bar-container hidden">
+          <div class="progress-bar-track">
+            <div id="progressBarFill" class="progress-bar-fill"></div>
+          </div>
+          <span id="progressBarText" class="progress-bar-text">0 / 0</span>
+        </div>
+        <button id="btnComplete" class="complete-button">
+          <span class="complete-text"><svg class="ico ico-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> MISSION COMPLETE!</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== CALENDAR ===== -->
+    <section class="calendar-section">
+      <div class="card-frame calendar-frame">
+        <div class="calendar-header">
+          <button id="btnPrevMonth" class="cal-nav-btn">◀</button>
+          <h2 id="calendarTitle" class="calendar-title"></h2>
+          <button id="btnNextMonth" class="cal-nav-btn">▶</button>
+        </div>
+        <div class="calendar-grid">
+          <div class="calendar-weekdays">
+            <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+          </div>
+          <div id="calendarDays" class="calendar-days"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== DAY DETAIL MODAL ===== -->
+    <div id="dayDetailModal" class="modal-overlay hidden">
+      <div class="modal-content card-frame modal-frame">
+        <div class="modal-header">
+          <h3 id="dayDetailTitle"></h3>
+          <button id="btnCloseDayDetail" class="close-btn">✕</button>
+        </div>
+        <div id="dayDetailBody" class="modal-body"></div>
+        <button id="btnDayComplete" class="complete-button modal-complete-btn hidden">
+          <span class="complete-text"><svg class="ico ico-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> MISSION COMPLETE!</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== REEL MANAGEMENT ===== -->
+    <section class="genre-section">
+      <div class="card-frame genre-frame">
+        <div class="section-header" id="genreSectionHeader">
+          <h2><span class="section-icon"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><line x1="8" y1="4" x2="8" y2="20"/><line x1="16" y1="4" x2="16" y2="20"/></svg></span> REELS</h2>
+          <button id="btnToggleGenres" class="toggle-btn">▼</button>
+        </div>
+        <div id="genrePanel" class="genre-panel">
+          <div class="add-genre-row">
+            <input type="text" id="genreNameInput" class="genre-input" placeholder="ジャンル名" maxlength="20">
+            <button id="btnAddGenre" class="add-genre-btn">+ REEL</button>
+            <button id="btnImportCSV" class="add-genre-btn import-btn" title="CSVインポート">📥 IMPORT</button>
+            <input type="file" id="csvFileInput" accept=".csv,.tsv,.txt" class="hidden">
+          </div>
+          <div id="genreList" class="genre-list"></div>
+          <div id="emptyGenreMsg" class="empty-msg">
+            <p class="empty-icon"><svg class="ico ico-empty" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg></p>
+            <p class="empty-title">リールがまだありません</p>
+            <p class="empty-sub">ジャンルを追加してスロットを作ろう</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== AUTO-ROLL SETTINGS ===== -->
+    <section class="autoroll-section">
+      <div class="card-frame autoroll-frame">
+        <div class="autoroll-row">
+          <label class="autoroll-label">
+            <input type="checkbox" id="autoRollEnabled">
+            <span class="autoroll-switch"></span>
+            <span>AUTO ROLL</span>
+          </label>
+          <div class="autoroll-time">
+            <input type="number" id="autoRollHour" min="0" max="23" value="6" class="autoroll-input"> :
+            <input type="number" id="autoRollMinute" min="0" max="59" step="5" value="0" class="autoroll-input">
+          </div>
+        </div>
+        <div class="autoroll-hint">毎朝指定時刻に自動でROLL</div>
+      </div>
+    </section>
+
+    <!-- ===== HARD MODE ===== -->
+    <section class="hardmode-section">
+      <div class="card-frame hardmode-frame">
+        <div class="autoroll-row">
+          <label class="autoroll-label">
+            <input type="checkbox" id="hardModeEnabled">
+            <span class="autoroll-switch hardmode-switch"></span>
+            <span>HARD MODE</span>
+          </label>
+          <span class="hardmode-badge">×2 TOKENS</span>
+        </div>
+        <div class="autoroll-hint">各リール+1タスク・リロール不可・報酬2倍</div>
+      </div>
+    </section>
+
+    <!-- ===== WEEKLY CHALLENGE ===== -->
+    <section class="weekly-section">
+      <div class="card-frame weekly-frame">
+        <div class="section-header" id="weeklySectionHeader">
+          <h2><span class="section-icon"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg></span> WEEKLY CHALLENGE</h2>
+          <button id="btnToggleWeekly" class="toggle-btn">▼</button>
+        </div>
+        <div id="weeklyPanel" class="weekly-panel">
+          <div id="weeklyContent" class="weekly-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== STATS ===== -->
+    <section class="stats-section">
+      <div class="card-frame stats-frame">
+        <div class="section-header" id="statsSectionHeader">
+          <h2><span class="section-icon"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></span> STATS</h2>
+          <button id="btnToggleStats" class="toggle-btn">▼</button>
+        </div>
+        <div id="statsPanel" class="stats-panel collapsed">
+          <div id="statsContent" class="stats-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SKINS ===== -->
+    <section class="skins-section">
+      <div class="card-frame skins-frame">
+        <div class="section-header" id="skinsSectionHeader">
+          <h2><span class="section-icon"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4c3 0 5.6-2.5 5.6-5.6C22 5.8 17.5 2 12 2z"/><circle cx="7.5" cy="11.5" r="1.5"/><circle cx="10" cy="7.5" r="1.5"/><circle cx="15" cy="7.5" r="1.5"/><circle cx="17.5" cy="11.5" r="1.5"/></svg></span> SKINS</h2>
+          <button id="btnToggleSkins" class="toggle-btn">▼</button>
+        </div>
+        <div id="skinsPanel" class="skins-panel collapsed">
+          <div id="skinsList" class="skins-list"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Image viewer -->
+  <div id="imageViewer" class="modal-overlay hidden">
+    <div class="image-viewer-content">
+      <button id="btnCloseImage" class="image-close-btn">✕</button>
+      <div id="imageViewerBody" class="image-viewer-body"></div>
+    </div>
+  </div>
+
+  <!-- Hidden input for image import -->
+  <input type="file" id="imageFileInput" accept="image/*" multiple class="hidden">
+
+  <!-- Dealer comment -->
+  <div id="dealerComment" class="dealer-comment hidden"></div>
+
+  <!-- Double Down modal -->
+  <div id="doubleDownModal" class="modal-overlay hidden">
+    <div class="modal-content card-frame double-down-frame">
+      <div class="dd-title">DOUBLE DOWN?</div>
+      <div class="dd-desc">もう1セットやれば<br>トークン <strong>×3</strong></div>
+      <div class="dd-actions">
+        <button id="btnDoubleDownAccept" class="dd-btn dd-accept">DEAL ME IN</button>
+        <button id="btnDoubleDownSkip" class="dd-btn dd-skip">NO THANKS</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily Bonus overlay -->
+  <div id="dailyBonusOverlay" class="modal-overlay hidden">
+    <div class="modal-content card-frame daily-bonus-frame">
+      <div class="db-title">DAILY BONUS</div>
+      <div id="dailyBonusResult" class="db-result"></div>
+      <button id="btnDailyBonusClaim" class="dd-btn dd-accept">CLAIM!</button>
+    </div>
+  </div>
+
+  <!-- Jackpot overlay -->
+  <div id="jackpotOverlay" class="jackpot-overlay hidden">
+    <div class="jackpot-text">JACKPOT</div>
+  </div>
+
+  <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
+  <script src="themes.js"></script>
+  <script src="storage.js"></script>
+  <!-- ESM（defer 相当）。同期スクリプトより後に実行される。
+       storage.js は firebase-init.js の読み込み完了イベントを待つので順序OK。 -->
+  <script type="module" src="firebase-init.js"></script>
+  <script src="sidepanel.js"></script>
+  <script type="module" src="web-init.js"></script>
+</body>
+</html>

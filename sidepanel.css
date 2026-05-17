@@ -1335,6 +1335,30 @@ body {
   margin-top: 2px;
 }
 
+/* ウェブ版のみ表示されるアカウントボタン（拡張機能版では使われない） */
+.header-account {
+  background: transparent;
+  border: 1px solid var(--border-lite, #3a3a44);
+  color: var(--gold, #ffd866);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-left: 6px;
+  padding: 0;
+  transition: background 0.15s ease;
+}
+.header-account:hover {
+  background: rgba(255, 216, 102, 0.1);
+}
+.header-account:active {
+  transform: scale(0.95);
+}
+
 /* ===========================
    PROGRESS BAR (Phase 2)
    =========================== */
