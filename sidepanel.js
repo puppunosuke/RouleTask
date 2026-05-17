@@ -297,13 +297,47 @@
   }
 
   async function saveImage(taskId, dataUrl) {
-    const db = await openIDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(IDB_STORE, 'readwrite');
-      tx.objectStore(IDB_STORE).put(dataUrl, taskId);
-      tx.oncomplete = resolve;
-      tx.onerror = () => reject(tx.error);
-    });
+    // task の imageFile を確保（未設定なら taskId.<拡張子> で生成して reels に書き戻す）
+    // ファイル名は両環境で必要（ウェブ版は Storage のパス、拡張機能でも Phase 3 同期で
+    // Firestore に乗ったときに ウェブ版から imageFile 経由で引けるようにするため）
+    const task = findTaskById(taskId);
+    let imageFileChanged = false;
+    if (task && !task.imageFile) {
+      const m = dataUrl.match(/^data:image\/(\w+);/);
+      const ext = m ? (m[1] === 'jpeg' ? 'jpg' : m[1]) : 'jpg';
+      task.imageFile = `${taskId}.${ext}`;
+      imageFileChanged = true;
+    }
+    const filename = task ? task.imageFile : null;
+
+    const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+    if (isExtension) {
+      // 既存の IndexedDB 保存
+      const db = await openIDB();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(dataUrl, taskId);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    } else {
+      // ウェブ版: dataUrl → Blob → Firebase Storage にアップロード
+      const fb = window.RouleTask && window.RouleTask.firebase;
+      if (!fb) return;
+      const user = fb.getCurrentUser();
+      if (!user) {
+        alert('画像をクラウドに保存するにはログインしてね');
+        return;
+      }
+      if (!filename) return;
+      const blob = await (await fetch(dataUrl)).blob();
+      await fb.uploadImage(user.uid, filename, blob);
+    }
+
+    // imageFile を新規生成した場合は state を永続化
+    if (imageFileChanged) {
+      await save();
+    }
   }
 
   async function getImage(taskId) {
